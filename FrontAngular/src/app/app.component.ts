@@ -1,35 +1,61 @@
-import { Component, OnInit } from '@angular/core';
-import { WebSocketAPI } from './WebSocketAPI';
+import { Component, OnDestroy, OnInit } from '@angular/core';
+import { StompService, StompState } from '@stomp/ng2-stompjs';
+import { Subscription } from 'rxjs';
 
 @Component({
   selector: 'app-root',
   templateUrl: './app.component.html',
   styleUrls: ['./app.component.scss']
 })
-export class AppComponent implements OnInit {
+export class AppComponent implements OnInit, OnDestroy {
 
   title = 'FrontAngular';
-  webSocketAPI: WebSocketAPI;
   greeting: any;
   name: string;
 
-  ngOnInit(): void {
-    this.webSocketAPI = new WebSocketAPI(new AppComponent());
-  }
+  private subscription: Subscription;
+
+  constructor(
+    private stompService: StompService
+  ) { }
+
+  ngOnInit() { }
 
   connect() {
-    this.webSocketAPI._connect();
+    if (!this.stompService.active) {
+      this.stompService.activate();
+    }
+    this.subscription = this.stompService
+      .watch('/topic/greetings')
+      .subscribe(res => {
+        const resBody: (any) = JSON.parse(res.body);
+        this.greeting = resBody.content;
+      });
   }
 
   disconnect() {
-    this.webSocketAPI._disconnect();
+    this.stompService.disconnect();
   }
 
   sendMessage() {
-    this.webSocketAPI._send(this.name);
+    this.stompService.publish('/app/hello', JSON.stringify({ name: this.name }));
   }
 
   handleMessage(message) {
     this.greeting = message;
+  }
+
+  ngOnDestroy() {
+    this.stompService.disconnect();
+    if (this.subscription) {
+      this.subscription.unsubscribe();
+    }
+  }
+
+  getStatus() {
+    this.stompService.state
+      .subscribe((status) => {
+        console.log(`Stomp connection status: ${StompState[status]}`);
+      });
   }
 }

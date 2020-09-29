@@ -18,8 +18,8 @@
         <div class="form-group">
           <label for="connect">WebSocket connection:</label>
           <button (click)="connect()" class="btn btn-default" type="submit">Connect</button>
-          <button (click)="disconnect()" class="btn btn-default" type="submit" [disabled]="!!greeting">Disconnect
-          </button>
+          <button (click)="disconnect()" class="btn btn-default" type="submit">Disconnect</button>
+          <button (click)="getStatus()" class="btn btn-default" type="submit">Status</button>
         </div>
       </form>
     </div>
@@ -32,8 +32,6 @@
         <button (click)="sendMessage()" class="btn btn-default" type="submit">Send</button>
       </form>
     </div>
-
-    <p> {{ greeting }}</p>
   </div>
 
 </div>
